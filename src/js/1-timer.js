@@ -1,72 +1,82 @@
-import flatpickr from "flatpickr";
-import iziToast from "izitoast";
+import flatpickr from 'flatpickr'; // Імпорт бібліотеки
+import 'flatpickr/dist/flatpickr.min.css'; // Додатковий імпорт стилів
+import iziToast from 'izitoast'; // Імпорт бібліотеки iziToast для показу сповіщень та її CSS-стилі.
+import 'izitoast/dist/css/iziToast.min.css';
+// Знаходимо елементи на сторінці
+const startTimerBtn = document.querySelector('button[data-start]');
+const dateTimePicker = document.querySelector('#datetime-picker');
+const daysCounter = document.querySelector('.value[data-days]');
+const hoursCounter = document.querySelector('.value[data-hours]');
+const minutesCounter = document.querySelector('.value[data-minutes]');
+const secondsCounter = document.querySelector('.value[data-seconds]');
 
-const datePicker = document.querySelector('#datetime-picker');
-const startBtn = document.querySelector('[data-start]');
-const daysEl = document.querySelector('[data-days]');
-const hoursEl = document.querySelector('[data-hours]');
-const minutesEl = document.querySelector('[data-minutes]');
-const secondsEl = document.querySelector('[data-seconds]');
+// Вводимо змінну, в яку зберігатимемо обрану дату
+let userSelectedDate = 0;
 
-startBtn.disabled = true;
-
-let userSelectedDate = null;
-
+// Налаштування Flatpickr
 const options = {
   enableTime: true,
   time_24hr: true,
-  defaultDate: new Date(),
+  defaultDate: new Date(), //Встановлює поточну дату та час як значення за замовчуванням при відкритті календаря. new Date() створює об'єкт дати та часу, що відповідає поточному моменту.
   minuteIncrement: 1,
   onClose(selectedDates) {
-    const currentDate = new Date();
-    userSelectedDate = selectedDates[0];
+    //функція зворотного виклику (callback), яка викликається кожного разу, коли користувач закриває календар (після вибору дати). selectedDates — це масив, що містить обрані дати. Ми беремо першу дату за допомогою selectedDates[0].
+    const dateDifference = selectedDates[0] - Date.now(); //обчислює різницю між обраною датою (selectedDates[0]) і поточним часом (Date.now()). Різниця зберігається в змінній dateDifference.
 
-    if (userSelectedDate <= currentDate) {
-      iziToast.error({
-        message: 'Please choose a date in the future',
-        messageColor: '#ffffff',
-        backgroundColor: '#ef4040',
-        position: 'topCenter',
-      });
-      startBtn.disabled = true;
+    if (dateDifference > 0) {
+      startTimerBtn.disabled = false;
+      userSelectedDate = selectedDates[0];
     } else {
-      startBtn.disabled = false;
+      startTimerBtn.disabled = true;
+      iziToast.error({
+        title: 'Error',
+        message: 'Please choose a date in the future',
+        position: 'topRight',
+        theme: 'dark',
+        closeOnEscape: true,
+      });
     }
   },
 };
 
-flatpickr(datePicker, options);
-let countdownInterval = null;
+//Якщо різниця дат більше нуля (dateDifference > 0), це означає, що обрана дата знаходиться в майбутньому. У цьому випадку кнопка Start (startTimerBtn) стає активною (disabled = false), і обрана дата зберігається в змінній userSelectedDate.
+//Якщо різниця менше або дорівнює нулю, це означає, що обрана дата знаходиться в минулому або відповідає поточному часу. У цьому випадку кнопка Start стає неактивною (disabled = true), і відображається повідомлення про помилку за допомогою бібліотеки iziToast.
+flatpickr('#datetime-picker', options);
 
-startBtn.addEventListener('click', () => {
-  startBtn.disabled = true;
-  datePicker.disabled = true;
+// Обробник кнопки "Start"
+startTimerBtn.addEventListener('click', timerInit);
 
-  countdownInterval = setInterval(() => {
-    const currentTime = new Date();
-    const timeDifference = userSelectedDate - currentTime;
+function timerInit() {
+  startTimerBtn.disabled = true;
+  dateTimePicker.disabled = true;
 
-    if (timeDifference <= 0) {
-      clearInterval(countdownInterval);
-      updateTimerDisplay(0, 0, 0, 0);
-      datePicker.disabled = false;
+  const intervalId = setInterval(() => {
+    const dateDifference = userSelectedDate - Date.now();
+    //перевірка чи закінчився час таймера
+    if (dateDifference <= 0) {
+      clearInterval(intervalId); //зупиняємо таймер
+      dateTimePicker.disabled = false; //вибір дати стає активним
+      iziToast.info({
+        title: 'Notification',
+        message: 'The timer has expired',
+        position: 'topRight',
+        theme: 'dark',
+        closeOnEscape: true,
+      });
       return;
     }
 
-    const time = convertMs(timeDifference);
-    updateTimerDisplay(time.days, time.hours, time.minutes, time.seconds);
+    const timerValues = convertMs(dateDifference);
+
+    secondsCounter.textContent = addLeadingZero(timerValues.seconds);
+    minutesCounter.textContent = addLeadingZero(timerValues.minutes);
+    hoursCounter.textContent = addLeadingZero(timerValues.hours);
+    daysCounter.textContent = addLeadingZero(timerValues.days);
   }, 1000);
-});
-
-function updateTimerDisplay(days, hours, minutes, seconds) {
-  daysEl.textContent = addLeadingZero(days);
-  hoursEl.textContent = addLeadingZero(hours);
-  minutesEl.textContent = addLeadingZero(minutes);
-  secondsEl.textContent = addLeadingZero(seconds);
 }
-
+//ф-ія для додавання 0 перед числом таймеру
 function addLeadingZero(value) {
-  return String(value).padStart(2, '0');
+  return value.toString().padStart(2, '0');
 }
 
 function convertMs(ms) {
