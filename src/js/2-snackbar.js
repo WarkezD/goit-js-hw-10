@@ -1,5 +1,4 @@
-import iziToast from "izitoast";
-import "izitoast/dist/css/iziToast.min.css";
+import iziToast from 'izitoast';
 
 const form = document.querySelector('.form');
 const delayInput = document.querySelector('input[name="delay"]');
