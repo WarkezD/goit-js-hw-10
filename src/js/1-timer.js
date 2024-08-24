@@ -1,6 +1,6 @@
-import flatpickr from 'flatpickr'; // Імпорт бібліотеки
-import 'flatpickr/dist/flatpickr.min.css'; // Додатковий імпорт стилів
-import iziToast from 'izitoast'; // Імпорт бібліотеки iziToast для показу сповіщень та її CSS-стилі.
+import flatpickr from 'flatpickr'; 
+import 'flatpickr/dist/flatpickr.min.css'; 
+import iziToast from 'izitoast'; 
 import 'izitoast/dist/css/iziToast.min.css';
 // Знаходимо елементи на сторінці
 const startTimerBtn = document.querySelector('button[data-start]');
@@ -10,18 +10,15 @@ const hoursCounter = document.querySelector('.value[data-hours]');
 const minutesCounter = document.querySelector('.value[data-minutes]');
 const secondsCounter = document.querySelector('.value[data-seconds]');
 
-// Вводимо змінну, в яку зберігатимемо обрану дату
 let userSelectedDate = 0;
 
-// Налаштування Flatpickr
 const options = {
   enableTime: true,
   time_24hr: true,
-  defaultDate: new Date(), //Встановлює поточну дату та час як значення за замовчуванням при відкритті календаря. new Date() створює об'єкт дати та часу, що відповідає поточному моменту.
+  defaultDate: new Date(),
   minuteIncrement: 1,
   onClose(selectedDates) {
-    //функція зворотного виклику (callback), яка викликається кожного разу, коли користувач закриває календар (після вибору дати). selectedDates — це масив, що містить обрані дати. Ми беремо першу дату за допомогою selectedDates[0].
-    const dateDifference = selectedDates[0] - Date.now(); //обчислює різницю між обраною датою (selectedDates[0]) і поточним часом (Date.now()). Різниця зберігається в змінній dateDifference.
+    const dateDifference = selectedDates[0] - Date.now();
 
     if (dateDifference > 0) {
       startTimerBtn.disabled = false;
@@ -39,11 +36,8 @@ const options = {
   },
 };
 
-//Якщо різниця дат більше нуля (dateDifference > 0), це означає, що обрана дата знаходиться в майбутньому. У цьому випадку кнопка Start (startTimerBtn) стає активною (disabled = false), і обрана дата зберігається в змінній userSelectedDate.
-//Якщо різниця менше або дорівнює нулю, це означає, що обрана дата знаходиться в минулому або відповідає поточному часу. У цьому випадку кнопка Start стає неактивною (disabled = true), і відображається повідомлення про помилку за допомогою бібліотеки iziToast.
 flatpickr('#datetime-picker', options);
 
-// Обробник кнопки "Start"
 startTimerBtn.addEventListener('click', timerInit);
 
 function timerInit() {
@@ -52,10 +46,9 @@ function timerInit() {
 
   const intervalId = setInterval(() => {
     const dateDifference = userSelectedDate - Date.now();
-    //перевірка чи закінчився час таймера
     if (dateDifference <= 0) {
-      clearInterval(intervalId); //зупиняємо таймер
-      dateTimePicker.disabled = false; //вибір дати стає активним
+      clearInterval(intervalId); 
+      dateTimePicker.disabled = false;
       iziToast.info({
         title: 'Notification',
         message: 'The timer has expired',
@@ -74,7 +67,6 @@ function timerInit() {
     daysCounter.textContent = addLeadingZero(timerValues.days);
   }, 1000);
 }
-//ф-ія для додавання 0 перед числом таймеру
 function addLeadingZero(value) {
   return value.toString().padStart(2, '0');
 }
